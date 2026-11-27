@@ -1,0 +1,29 @@
+/* Visual overrides only. Application fields, validation and API remain unchanged. */
+body.application-page #ufaqWrap{font-family:var(--font)!important;background:#eef5fa;padding:48px 24px;color:var(--ink)}
+body.application-page #ufaqWrap *,body.application-page #ufaqWrap h1,body.application-page #ufaqWrap h2,body.application-page #ufaqWrap h3,body.application-page #ufaqWrap h4{font-family:var(--font)!important}
+body.application-page #ufaqWrap .ufaq-landing,body.application-page #ufaqWrap .u-card{max-width:900px;border:1px solid var(--edge);border-top:5px solid var(--blue);border-radius:3px;padding:38px;box-shadow:0 8px 24px #15374e0a}
+body.application-page #ufaqWrap .ufaq-main-title{font-size:58px;letter-spacing:-.025em;color:var(--navy)}
+body.application-page #ufaqWrap .ufaq-main-subtitle,body.application-page #ufaqWrap .apf-sub{color:var(--blue-dark)}
+body.application-page #ufaqWrap .ufaq-intro-box,body.application-page #ufaqWrap .ufaq-struct-wrap{background:var(--tint);border-color:var(--edge);border-left-color:var(--blue);border-radius:3px}
+body.application-page #ufaqWrap .ufaq-theme-card{border:1px solid var(--edge);border-top:3px solid var(--blue);border-radius:3px;box-shadow:none}
+body.application-page #ufaqWrap .ufaq-theme-icon,body.application-page #ufaqWrap .ufaq-tagline-strip{background:var(--navy);border-radius:3px}
+body.application-page #ufaqWrap .ufaq-theme-num,body.application-page #ufaqWrap .ufaq-arrow{color:var(--blue)}
+body.application-page #ufaqWrap .ufaq-sec-heading{font-size:25px}
+body.application-page #ufaqWrap .ufaq-node{border-radius:3px}
+body.application-page #ufaqWrap .ufaq-node-prog,body.application-page #ufaqWrap .ufaq-apply-btn,body.application-page #ufaqWrap #submitBtn{background:var(--blue);border-radius:3px;box-shadow:none}
+body.application-page #ufaqWrap #submitBtn:hover:not(:disabled),body.application-page #ufaqWrap .ufaq-apply-btn:hover{background:var(--blue-dark)}
+body.application-page #ufaqWrap #submitBtn.is-loading{background:linear-gradient(110deg,var(--navy),var(--blue),var(--navy));background-size:200% 100%}
+body.application-page #ufaqWrap .u-in{background:white;border:1px solid #a9bdca;border-radius:4px;padding:12px;font-size:16px;min-width:0}
+body.application-page #ufaqWrap .u-in:focus{outline:2px solid var(--blue);outline-offset:1px;border-color:var(--blue)}
+body.application-page #ufaqWrap .u-grid{gap:16px;grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+body.application-page #ufaqWrap .u-sec{margin-bottom:32px}
+body.application-page #ufaqWrap .u-sec>h3{font-size:21px;color:var(--navy);padding-bottom:11px}
+body.application-page #ufaqWrap label.u-lab{font-size:15px;line-height:1.35;margin-bottom:7px}
+body.application-page #ufaqWrap .u-chk{font-size:15px}
+body.application-page #ufaqWrap .u-chk input{accent-color:var(--blue);min-width:17px;min-height:17px}
+body.application-page #ufaqWrap .u-file-box,body.application-page #ufaqWrap .privacy-box{border-radius:3px;background:var(--tint)}
+body.application-page #ufaqWrap .privacy-box p,body.application-page #ufaqWrap .notice-box p,body.application-page #ufaqWrap .partner-box p{font-size:15px;line-height:1.6}
+body.application-page #ufaqWrap .apf-name{font-size:34px}
+body.application-page #ufaqWrap .ufaq-hero .proj-title{font-size:30px}
+body.application-page #ufaqWrap #formCard{scroll-margin-top:20px}
+@media(max-width:650px){body.application-page #ufaqWrap{padding:24px 12px}body.application-page #ufaqWrap .ufaq-landing,body.application-page #ufaqWrap .u-card{padding:20px 16px}body.application-page #ufaqWrap .ufaq-main-title{font-size:40px}body.application-page #ufaqWrap .apf-name{font-size:27px}body.application-page #ufaqWrap .ufaq-hero .proj-title{font-size:23px}body.application-page #ufaqWrap .u-grid{grid-template-columns:minmax(0,1fr)}}
