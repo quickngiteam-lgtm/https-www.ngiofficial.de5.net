@@ -91,13 +91,19 @@
 
 .ngi-whatsapp-help a {
   display: inline-flex;
-  align-items: center;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
   min-height: 44px;
   padding: .4rem .7rem;
   border-radius: .45rem;
   background: #126442;
   color: #fff;
   text-decoration: none;
+}
+
+.ngi-whatsapp-help a span {
+  font-size: .8rem;
 }
 
 .ngi-whatsapp-help a:hover {
