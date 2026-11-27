@@ -8,8 +8,24 @@
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;transition-duration:.01ms!important}}
 
 /* Locally hosted Sindhi community imagery */
-.campaign-photo img{object-position:50% 42%}
+
 .youth-feature{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,340px);gap:32px;align-items:center}
 .youth-feature-photo{display:block;width:100%;height:auto;aspect-ratio:4/3;object-fit:cover;background:var(--tint);border-radius:3px}
 @media(max-width:850px){.youth-feature{grid-template-columns:minmax(0,1fr) minmax(0,260px);gap:22px}}
 @media(max-width:650px){.youth-feature{grid-template-columns:minmax(0,1fr);gap:24px}.youth-feature-photo{width:100%;max-height:320px;object-position:center 35%}}
+
+/* UFAQ hero: carefully framed, near-full portrait on every screen. */
+.home-page .campaign-photo{
+  align-self:center;justify-self:center;width:min(100%,400px);
+  min-height:0;aspect-ratio:3/4;display:block;
+  border-radius:4px;box-shadow:0 10px 28px rgba(10,49,84,.13);
+  overflow:hidden;
+}
+.home-page .campaign-photo img{
+  width:100%;height:100%;min-height:0;
+  object-fit:cover;object-position:center 15%;
+}
+@media(max-width:650px){
+  .home-page .campaign-photo{width:min(100%,340px);margin:24px auto 0;min-height:0}
+  .home-page .campaign-photo img{height:100%;min-height:0}
+}
