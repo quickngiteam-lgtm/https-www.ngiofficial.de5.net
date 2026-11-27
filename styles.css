@@ -14,18 +14,31 @@
 @media(max-width:850px){.youth-feature{grid-template-columns:minmax(0,1fr) minmax(0,260px);gap:22px}}
 @media(max-width:650px){.youth-feature{grid-template-columns:minmax(0,1fr);gap:24px}.youth-feature-photo{width:100%;max-height:320px;object-position:center 35%}}
 
-/* UFAQ hero: carefully framed, near-full portrait on every screen. */
+/* UFAQ homepage: natural landscape crop, with no loss of image content. */
 .home-page .campaign-photo{
-  align-self:center;justify-self:center;width:min(100%,400px);
-  min-height:0;aspect-ratio:3/4;display:block;
+  align-self:center;justify-self:center;width:100%;
+  min-height:0;aspect-ratio:1280/853;display:block;
   border-radius:4px;box-shadow:0 10px 28px rgba(10,49,84,.13);
   overflow:hidden;
 }
 .home-page .campaign-photo img{
   width:100%;height:100%;min-height:0;
-  object-fit:cover;object-position:center 15%;
+  object-fit:contain;object-position:center;
 }
 @media(max-width:650px){
-  .home-page .campaign-photo{width:min(100%,340px);margin:24px auto 0;min-height:0}
+  .home-page .campaign-photo{width:100%;margin:24px auto 0;min-height:0}
   .home-page .campaign-photo img{height:100%;min-height:0}
 }
+/* Keep the audience photograph in its original 16:9 proportions. */
+.youth-feature-photo.youth-feature-landscape{
+  aspect-ratio:16/9;object-fit:contain;object-position:center;max-height:none;
+}
+
+/* Home: partnership introduction and girls' education message. */
+.home-page .organisation .youth-feature p+p{margin-top:16px}
+.girls-education{background:var(--tint);border-top:1px solid var(--edge);border-bottom:1px solid var(--edge);padding:44px 0}
+.girls-education-inner{border-left:5px solid var(--blue);padding-left:28px;max-width:950px}
+.girls-education h2{font-size:clamp(28px,3.5vw,40px);color:var(--navy);margin-bottom:16px}
+.girls-education p{color:var(--muted);font-size:18px;line-height:1.65}
+.girls-education p+p{margin-top:14px}
+@media(max-width:650px){.girls-education{padding:32px 0}.girls-education-inner{padding-left:18px}.girls-education p{font-size:17px}}
