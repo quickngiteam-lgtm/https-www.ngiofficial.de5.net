@@ -72,46 +72,46 @@
 
 .ngi-whatsapp-help {
   position: fixed;
-  right: max(1rem, env(safe-area-inset-right));
-  bottom: max(1rem, env(safe-area-inset-bottom));
+  right: max(.75rem, env(safe-area-inset-right));
+  bottom: max(.75rem, env(safe-area-inset-bottom));
   z-index: 30;
-  max-width: min(14rem, calc(100vw - 2rem));
-  padding: .65rem;
-  border: 1px solid #cbdcd3;
-  border-radius: .75rem;
-  background: #fff;
-  color: #18352a;
-  box-shadow: 0 3px 16px #132e2426;
-  font: 600 .875rem/1.35 "Source Sans 3", system-ui, sans-serif;
-}
-
-.ngi-whatsapp-help p {
-  margin: 0 0 .35rem;
-}
-
-.ngi-whatsapp-help a {
-  display: inline-flex;
-  align-items: center;
-  min-height: 44px;
-  padding: .4rem .7rem;
-  border-radius: .45rem;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
   background: #126442;
   color: #fff;
-  text-decoration: none;
+  box-shadow: 0 2px 8px #132e2433;
 }
 
-.ngi-whatsapp-help a:hover {
+.ngi-whatsapp-help:hover {
   background: #0b5034;
 }
 
-.ngi-whatsapp-help a:focus-visible {
+.ngi-whatsapp-help:focus-visible {
   outline: 3px solid #174975;
   outline-offset: 3px;
 }
 
-@media (max-height: 420px) {
-  .ngi-whatsapp-help {
-    position: static;
-    margin: 1rem 1rem 1rem auto;
-  }
+.ngi-whatsapp-help span {
+  position: relative;
+  display: block;
+  box-sizing: border-box;
+  width: 21px;
+  height: 16px;
+  margin-bottom: 3px;
+  border: 2px solid currentColor;
+  border-radius: 5px;
+}
+
+.ngi-whatsapp-help span::after {
+  content: "";
+  position: absolute;
+  bottom: -5px;
+  left: 3px;
+  width: 5px;
+  height: 5px;
+  border-left: 2px solid currentColor;
+  transform: skewY(-35deg);
 }
