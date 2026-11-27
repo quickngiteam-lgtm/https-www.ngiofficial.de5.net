@@ -5,7 +5,7 @@
 <meta name="description" content="Next Generation Initiative — Empowering Youth. Transforming Communities.">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;500;600;650;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../styles.css"><link rel="stylesheet" href="membership.css"></head>
+<link rel="stylesheet" href="../styles.css"><link rel="stylesheet" href="membership.css?v=membership-success-1"></head>
 <body class=""><a class="skip-link" href="#main">Skip to content</a>
 
 <header class="site-header"><div class="brand-block">
@@ -66,9 +66,17 @@
     <div class="membership-hp" aria-hidden="true"><label for="website">Website</label><input id="website" name="website" tabindex="-1" autocomplete="off"></div>
     <button id="membership-submit" type="submit" disabled>Submit Membership Application</button>
   </form>
+  <dialog id="membership-success-dialog" class="membership-success-dialog" aria-labelledby="membership-success-title" aria-describedby="membership-success-description">
+    <div class="membership-success-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4 4L19 6"/></svg></div>
+    <span class="eyebrow">NGI Membership</span>
+    <h2 id="membership-success-title">Successfully Received</h2>
+    <p id="membership-success-description">Thank you for submitting your membership application. The relevant NGI team will review your application and contact you regarding the next steps.</p>
+    <div class="membership-success-reference"><span>Application Reference Number</span><strong id="membership-success-reference"></strong></div>
+    <button type="button" id="membership-success-close">Close</button>
+  </dialog>
 </section>
 <script src="config.js?v=membership-connected-1"></script>
-<script src="membership.js"></script>
+<script src="membership.js?v=membership-success-1"></script>
 </main>
 <div class="site-footer">
 <div class="footer-inner">

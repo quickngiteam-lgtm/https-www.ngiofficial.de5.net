@@ -3,6 +3,33 @@
   const form = document.getElementById("membership-form");
   const button = document.getElementById("membership-submit");
   const status = document.getElementById("membership-status");
+  const dialog = document.getElementById("membership-success-dialog");
+  const referenceText = document.getElementById("membership-success-reference");
+  const closeButton = document.getElementById("membership-success-close");
+  if (dialog && closeButton) {
+    closeButton.addEventListener("click", function () {
+      if (typeof dialog.close === "function") dialog.close();
+      else dialog.removeAttribute("open");
+    });
+    dialog.addEventListener("close", function () { button.focus({preventScroll: true}); });
+  }
+  function showSuccessPopup(reference) {
+    if (!dialog || !referenceText || !closeButton) {
+      status.scrollIntoView({behavior: "smooth", block: "center"});
+      return;
+    }
+    referenceText.textContent = reference || "Not available";
+    try {
+      if (typeof dialog.showModal === "function") {
+        if (!dialog.open) dialog.showModal();
+      } else {
+        dialog.setAttribute("open", "");
+      }
+      closeButton.focus({preventScroll: true});
+    } catch (_) {
+      status.scrollIntoView({behavior: "smooth", block: "center"});
+    }
+  }
   const endpoint = String(window.NGI_MEMBERSHIP_ENDPOINT || "").trim();
   const connected = /^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+\/exec$/.test(endpoint);
   function message(text, kind) {
@@ -33,8 +60,9 @@
       const result = await response.json();
       if (!response.ok || !result.success) throw new Error(result.message || "Submission could not be confirmed.");
       form.reset();
-      message("Membership application received. Your reference is " + result.reference + ".", "success");
-      status.scrollIntoView({behavior: "smooth", block: "center"});
+      const reference = typeof result.reference === "string" ? result.reference.trim() : "";
+      message("Membership application received. Your reference number is " + (reference || "not available") + ".", "success");
+      showSuccessPopup(reference);
     } catch (error) {
       message("Your submission could not be confirmed. Please try again or contact NGI. " + (error.message || ""), "error");
     } finally {
