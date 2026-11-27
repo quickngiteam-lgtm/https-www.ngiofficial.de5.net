@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>NGI Membership | NGI</title>
+<meta name="theme-color" content="#0a3154">
+<meta name="description" content="Next Generation Initiative — Empowering Youth. Transforming Communities.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;500;600;650;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../styles.css"><link rel="stylesheet" href="membership.css"></head>
+<body class=""><a class="skip-link" href="#main">Skip to content</a>
+
+<header class="site-header"><div class="brand-block">
+<div class="w brand-container">
+<div class="brand-row">
+<div class="brand-logo">
+<img src="https://lh3.googleusercontent.com/d/1S5-QYFSCaPwLxHTXR51VhfiXbAkokHvd" alt="NGI Logo" onerror="this.style.display='none';this.parentNode.innerHTML='NGI'">
+</div>
+<div class="brand-text">
+<div class="brand-title">NEXT GENERATION<br>INITIATIVE (NGI)</div>
+<div class="brand-tagline">Empowering Youth. Transforming Communities.</div>
+</div>
+</div>
+</div>
+</div>
+
+
+<nav aria-label="Main navigation" class="main-nav"><div class="nav-inner"><button class="menu-toggle" type="button" aria-expanded="false" aria-controls="nav-links"><span aria-hidden="true">☰</span> Menu</button><div id="nav-links" class="nav-links"><a href="../">Home</a><a href="../about/">About NGI</a><a href="../vision-mission/">Vision &amp; Mission</a><a href="../leadership/">Leadership</a><a href="../membership/" aria-current="page">NGI Membership</a><a href="../apply-for-ufaq-project-voluntarily/">UFAQ Volunteer Application</a></div></div></nav>
+</header>
+<main id="main"><div class="page-hero"><div class="page-wrap">
+  <span class="eyebrow">Join NGI</span>
+  <h1>NGI Membership</h1>
+  <p>Become a part of Next Generation Initiative and contribute to youth empowerment and community development.</p>
+</div></div>
+<section class="membership-section page-wrap" aria-labelledby="membership-title">
+  <div class="membership-intro">
+    <span class="eyebrow">Membership Portal</span>
+    <h2 id="membership-title">Membership Application Form</h2>
+    <p>Apply to become a member of NGI. This is an independent NGI membership application, not the UFAQ volunteer application.</p>
+    <p class="membership-required">Fields marked with an asterisk (*) are required.</p>
+  </div>
+  <div id="membership-status" class="membership-status" role="status" aria-live="polite">Membership registration is not yet connected. You can review the form, but submissions are not available.</div>
+  <form id="membership-form" method="post">
+    <fieldset><legend>01. Personal information</legend>
+      <div class="membership-grid">
+        <div><label for="full-name">Full Name *</label><input id="full-name" name="fullName" autocomplete="name" maxlength="100" required></div>
+        <div><label for="email">Email Address *</label><input id="email" name="email" type="email" autocomplete="email" maxlength="150" required></div>
+        <div><label for="phone">WhatsApp / Phone Number *</label><input id="phone" name="phone" type="tel" autocomplete="tel" maxlength="20" placeholder="03001234567" required></div>
+        <div><label for="district">District *</label><select id="district" name="district" required><option value="">Select district</option><option>Badin</option><option>Dadu</option><option>Ghotki</option><option>Hyderabad</option><option>Jacobabad</option><option>Jamshoro</option><option>Kambar Shahdadkot</option><option>Karachi</option><option>Kashmore</option><option>Khairpur</option><option>Larkana</option><option>Matiari</option><option>Mirpurkhas</option><option>Naushahro Feroze</option><option>Sanghar</option><option>Shaheed Benazirabad</option><option>Shikarpur</option><option>Sujawal</option><option>Sukkur</option><option>Tando Allahyar</option><option>Tando Muhammad Khan</option><option>Tharparkar</option><option>Thatta</option><option>Umerkot</option><option>Other</option></select></div>
+        <div><label for="city">City / Town *</label><input id="city" name="city" autocomplete="address-level2" maxlength="80" required></div>
+        <div><label for="education">Education Level *</label><select id="education" name="education" required><option value="">Select level</option><option>Matric</option><option>Intermediate</option><option>Undergraduate / Bachelor's</option><option>Graduate / Master's</option><option>Other</option></select></div>
+      </div>
+      <div class="membership-row"><label for="institution">Institution / Occupation</label><input id="institution" name="institution" maxlength="150"></div>
+    </fieldset>
+    <fieldset><legend>02. Your interests</legend>
+      <div class="membership-grid">
+        <div><label for="interest">Area of Interest *</label><select id="interest" name="interest" required><option value="">Choose an area</option><option>Education</option><option>Youth Leadership</option><option>Community Development</option><option>Social Awareness</option><option>Media and Communications</option><option>Research and Documentation</option><option>Event Management</option><option>General Membership</option></select></div>
+        <div><label for="availability">Availability</label><input id="availability" name="availability" maxlength="60" placeholder="e.g. 5 hours per week"></div>
+      </div>
+      <div class="membership-row"><label for="reason">Why do you want to join NGI? *</label><textarea id="reason" name="reason" rows="4" maxlength="1200" required></textarea></div>
+    </fieldset>
+    <fieldset><legend>03. Consent and declaration</legend>
+      <p>NGI will use the information you provide to review your membership application and contact you about membership.</p>
+      <label class="membership-check"><input type="checkbox" name="consent" required> <span>I consent to NGI using my information for these membership purposes. *</span></label>
+      <label class="membership-check"><input type="checkbox" name="accuracy" required> <span>I confirm that the information I have provided is accurate. *</span></label>
+    </fieldset>
+    <div class="membership-hp" aria-hidden="true"><label for="website">Website</label><input id="website" name="website" tabindex="-1" autocomplete="off"></div>
+    <button id="membership-submit" type="submit" disabled>Submit Membership Application</button>
+  </form>
+</section>
+<script src="config.js"></script>
+<script src="membership.js"></script>
+</main>
+<div class="site-footer">
+<div class="footer-inner">
+<div class="footer-grid">
+<div>
+<h3>NGI - Next Generation Initiative</h3>
+<p>Empowering youth and fostering positive social transformation across Sindh &amp; Pakistan.</p>
+</div>
+<div>
+<h4>Contact Information</h4>
+<p><strong>Phone / WhatsApp:</strong> +923043003600</p>
+<p><strong>Email:</strong> ngiactivities@outlook.com</p>
+</div>
+<div>
+<h4>Connect With Us</h4>
+<div>
+<a href="https://facebook.com" target="_blank" class="footer-link">
+<svg style="width:15px;height:15px;fill:currentColor" viewbox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"></path></svg>
+Facebook
+</a>
+<a href="mailto:ngiactivities@outlook.com" class="footer-link">
+<svg style="width:15px;height:15px;fill:currentColor" viewbox="0 0 24 24"><path d="M24 5.457v13.909c0 .904-.732 1.636-1.636 1.636h-3.819V11.73l-6.545 4.364-6.545-4.364v9.273H1.636C.732 21.002 0 20.27 0 19.366V5.457c0-1.011.821-1.832 1.832-1.832h.545L12 9.818l9.623-6.193h.545c1.011 0 1.832.821 1.832 1.832z"></path></svg>
+Email Us
+</a>
+</div>
+</div>
+</div>
+<div class="copyright">
+© 2026 NGI - Next Generation Initiative. All rights reserved.
+</div>
+</div>
+</div>
+
+<script>
+(function(){const b=document.querySelector('.menu-toggle');const n=document.getElementById('nav-links');b.addEventListener('click',()=>{const open=b.getAttribute('aria-expanded')==='true';b.setAttribute('aria-expanded',String(!open));n.classList.toggle('open',!open)});n.addEventListener('click',e=>{if(e.target.closest('a')){b.setAttribute('aria-expanded','false');n.classList.remove('open')}})})();
+</script></body></html>
