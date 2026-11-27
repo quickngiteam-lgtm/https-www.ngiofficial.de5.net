@@ -2,7 +2,7 @@
  * NGI COMPLETE WEBSITE — single-file Google Apps Script web app
  *
  * INSTALL:
- * 1. Open the NEW website/Membership Apps Script project, NOT the existing UFAQ project.
+ * 1. Open the website Apps Script project used by both forms.
  * 2. Back up old code; paste this entire file into Code.gs. Keep only one doGet/doPost.
  * 3. Set optional NGI_ADMIN_NOTIFICATION_EMAIL in Script Properties.
  * 4. Save, choose setupWebsite, Run once, and grant requested permissions.
@@ -12,62 +12,66 @@
  *
  * Includes all six existing pages, navigation, original content, CSS, carousel,
  * responsive layouts, both application forms, local page images, backend routing,
- * private Membership spreadsheet and admin Gmail alerts.
+ * private application storage and optional admin Gmail alerts.
  * Remote brand logos and fonts retain their original HTTPS references.
- * Existing UFAQ service MUST stay active to preserve its records/CV storage.
  * This file is a complete Apps Script-hosted website, not a static GitHub index.html.
  * No separate HTML, CSS, JavaScript, or image files need to be uploaded.
  *
  * Notifications are sent after server-confirmed success; an email quota problem
  * does not invalidate a saved record. All applicant contact details remain private.
  */
-/**
- * NGI WEBSITE — unified Google Apps Script endpoint.
- * Membership records are saved in the private Membership spreadsheet.
- * Validated UFAQ applications are forwarded to the existing UFAQ backend, so
- * the legacy service continues to handle storage and application IDs.
- * Install in the NEW Membership/website Apps Script project, NOT the old UFAQ project.
- * Both website forms use this deployment.
- */
-const NGI_UFAQ_LEGACY_ENDPOINT = 'https://script.google.com/macros/s/AKfycbyGDYlEFVmlBwYvuKlRzXZe4BOR1yQ8310L7G46lLOvmp9FesE7lmLjvq6oWP7EINLKNA/exec';
+const NGI_NEW_APPLICATIONS_ID = 'NGI_NEW_APPLICATIONS_SHEET_ID';
+const NGI_NEW_CV_FOLDER_ID = 'NGI_NEW_UFAQ_CV_FOLDER_ID';
+const NGI_MEMBERSHIP_SHEET = 'Membership';
+const NGI_UFAQ_SHEET = 'UFAQ';
 const NGI_MEMBERSHIP_FIELDS = ['fullName', 'email', 'phone', 'district', 'city', 'education', 'institution', 'interest', 'availability', 'reason'];
 const NGI_MEMBERSHIP_CODE_TTL = 600;
 const NGI_MEMBERSHIP_HEADERS = ['Received At', 'Reference'].concat(NGI_MEMBERSHIP_FIELDS, ['Consent', 'Accuracy']);
 
-/** Run once manually as the script owner. The spreadsheet stays private. */
-function setupMembership_() {
-  const props = PropertiesService.getScriptProperties();
-  if (props.getProperty('MEMBERSHIP_SHEET_ID')) return;
-  const book = SpreadsheetApp.create('NGI Membership Applications');
-  const sheet = book.getSheets()[0];
-  sheet.setName('Applications');
-  sheet.appendRow(NGI_MEMBERSHIP_HEADERS);
-  sheet.setFrozenRows(1);
-  props.setProperty('MEMBERSHIP_SHEET_ID', book.getId());
-}
-
-/** Run once from the Apps Script editor. No email or application is sent. */
+/** Run once from the Apps Script editor as the deployment owner. */
 function setupWebsite() {
-  // Setup is for the owner in the Apps Script editor, not public visitors.
   const active = String(Session.getActiveUser().getEmail() || '').toLowerCase();
   const owner = String(Session.getEffectiveUser().getEmail() || '').toLowerCase();
   if (!active || active !== owner) throw new Error('Run setupWebsite as the project owner in the Apps Script editor.');
-  const deployed = ScriptApp.getService().getUrl();
-  if (deployed === NGI_UFAQ_LEGACY_ENDPOINT) {
-    throw new Error('Install this code in the new website project, not the existing UFAQ project.');
-  }
-  setupMembership_();
-  Logger.log('Remaining daily email recipient quota: ' + MailApp.getRemainingDailyQuota());
-  // getRequest authorizes the external-request service without sending a submission.
-  UrlFetchApp.getRequest(NGI_UFAQ_LEGACY_ENDPOINT, {method: 'post', contentType: 'text/plain;charset=utf-8'});
-  Logger.log('Website setup complete. Deploy as a web app.');
+  const lock = LockService.getScriptLock();
+  if (!lock.tryLock(10000)) throw new Error('Website storage setup is busy. Try again.');
+  try {
+    const props = PropertiesService.getScriptProperties();
+    let id = props.getProperty(NGI_NEW_APPLICATIONS_ID);
+    if (!id) {
+      const book = SpreadsheetApp.create('NGI New Applications');
+      book.getSheets()[0].setName(NGI_MEMBERSHIP_SHEET);
+      id = book.getId();
+      props.setProperty(NGI_NEW_APPLICATIONS_ID, id);
+    }
+    const book = SpreadsheetApp.openById(id);
+    setupApplicationsSheet_(book, NGI_MEMBERSHIP_SHEET, NGI_MEMBERSHIP_HEADERS);
+    setupApplicationsSheet_(book, NGI_UFAQ_SHEET, ['Received At', 'Reference',
+      'Request Token Hash', 'Request Content Hash'].concat(NGI_UFAQ_FIELDS, ['CV File ID']));
+    SpreadsheetApp.flush();
+    if (!props.getProperty(NGI_NEW_CV_FOLDER_ID)) {
+      const folder = DriveApp.createFolder('NGI New UFAQ CVs');
+      props.setProperty(NGI_NEW_CV_FOLDER_ID, folder.getId());
+    }
+    Logger.log('New applications spreadsheet: ' + book.getUrl());
+    Logger.log('New UFAQ CV folder: ' + DriveApp.getFolderById(props.getProperty(NGI_NEW_CV_FOLDER_ID)).getUrl());
+    Logger.log('Remaining daily email recipient quota: ' + MailApp.getRemainingDailyQuota());
+  } finally { lock.releaseLock(); }
+}
+
+function setupApplicationsSheet_(book, name, headers) {
+  const sheet = book.getSheetByName(name) || book.insertSheet(name);
+  if (sheet.getLastRow() === 0) sheet.appendRow(headers);
+  sheet.setFrozenRows(1);
 }
 
 function doGet(e) {
   const params = (e && e.parameter) || {};
   if (String(params.health || '') === '1') {
-    return membershipJson_({success: true, service: 'NGI Website', forms: ['membership', 'ufaq'],
-      membershipConfigured: !!PropertiesService.getScriptProperties().getProperty('MEMBERSHIP_SHEET_ID')});
+    const props = PropertiesService.getScriptProperties();
+    const sheetConfigured = !!props.getProperty(NGI_NEW_APPLICATIONS_ID);
+    return membershipJson_({success:true,service:'NGI Website',forms:['membership','ufaq'],
+      membershipConfigured:sheetConfigured,ufaqConfigured:sheetConfigured && !!props.getProperty(NGI_NEW_CV_FOLDER_ID)});
   }
   return renderWebsite_(params.page, params.section);
 }
@@ -101,13 +105,24 @@ function doPost(e) {
         'Please check the Pakistani mobile numbers.'];
       return membershipJson_({success:false,message:safeMessages.includes(message) ? message : safeMessages[0]});
     }
-    return handleUfaqApplication_(JSON.stringify(request));
+    return handleUfaqApplication_(request);
   }
   if (raw.length > 14000) return membershipJson_({success:false,message:'Invalid request.'});
   return handleMembershipApplication_(data);
 }
 
-/** Validate and normalize the public UFAQ request before contacting the legacy service. */
+const NGI_UFAQ_LIMITS = {
+    Full_Name:150, Gender:50, Date_of_Birth:10, WhatsApp_Number:25, Email_Address:150,
+    District:100, City:100, Complete_Address:500, Guardian_Full_Name:150,
+    Guardian_Relationship:80, Guardian_Phone:25, Guardian_Consent_Confirmed:3,
+    Education_Level:100, Institution_Name:200, Preferred_Role:150, Previous_Experience:100,
+    Skills:2000, Reason_to_Join:3000, Hours_Per_Week:30, Travel_Within_District:100,
+    Emergency_Contact_Name:150, Emergency_Contact_Number:25,
+    Privacy_Consent:6, Accuracy_Declaration:6, Compensation_Policy_Agreed:6
+};
+const NGI_UFAQ_FIELDS = Object.keys(NGI_UFAQ_LIMITS);
+
+/** Validate and normalize the public UFAQ request before storing an application. */
 function validateUfaqApplication_(data) {
   const invalid = 'Please complete the UFAQ application and upload a valid CV.';
   const fields = data.fields;
@@ -116,19 +131,10 @@ function validateUfaqApplication_(data) {
       !Number.isSafeInteger(data.elapsedSeconds) || data.elapsedSeconds < 20) {
     throw new Error(invalid);
   }
-  const limits = {
-    Full_Name:150, Gender:50, Date_of_Birth:10, WhatsApp_Number:25, Email_Address:150,
-    District:100, City:100, Complete_Address:500, Guardian_Full_Name:150,
-    Guardian_Relationship:80, Guardian_Phone:25, Guardian_Consent_Confirmed:3,
-    Education_Level:100, Institution_Name:200, Preferred_Role:150, Previous_Experience:100,
-    Skills:2000, Reason_to_Join:3000, Hours_Per_Week:30, Travel_Within_District:100,
-    Emergency_Contact_Name:150, Emergency_Contact_Number:25,
-    Privacy_Consent:6, Accuracy_Declaration:6, Compensation_Policy_Agreed:6
-  };
   const clean = {website:''};
-  for (const name of Object.keys(limits)) {
+  for (const name of NGI_UFAQ_FIELDS) {
     const value = fields[name];
-    if (typeof value !== 'string' || value.length > limits[name] || (!name.startsWith('Guardian_') && !value.trim())) {
+    if (typeof value !== 'string' || value.length > NGI_UFAQ_LIMITS[name] || (!name.startsWith('Guardian_') && !value.trim())) {
       throw new Error(invalid);
     }
     clean[name] = value.trim();
@@ -157,7 +163,7 @@ function validateUfaqApplication_(data) {
     for (const name of Object.keys(clean)) if (name.startsWith('Guardian_')) clean[name] = '';
   }
   for (const name of phones) {
-    // Preserve the national format expected by the legacy service.
+    // Store all mobile numbers in the national format.
     const phone = clean[name].replace(/[\s()-]/g, '').replace(/^\+?92/, '0');
     if (!/^03\d{9}$/.test(phone)) throw new Error('Please check the Pakistani mobile numbers.');
     clean[name] = phone;
@@ -182,59 +188,63 @@ function validateUfaqApplication_(data) {
   const prefix = Utilities.base64Decode(encoded[1].slice(0, 12));
   if (bytes < 100 || bytes > 500 * 1024 || !type[1].every((v, i) => (prefix[i] & 255) === v)) throw new Error(invalid);
   return {token:data.token, elapsedSeconds:data.elapsedSeconds, fields:clean,
-    cv:{name:cv.name, type:type[0], data:'data:' + type[0] + ';base64,' + encoded[1]}};
+    cv:{name:cv.name,type:type[0],extension:ext,encoded:encoded[1]}};
 }
 
-/** Bound downstream requests across all public callers. */
-function reserveUfaqRequest_() {
+/** Called with the script lock held for each new UFAQ submission. */
+function reserveUfaqRequest_(props) {
+  const now = new Date().toISOString();
+  const hour = now.slice(0, 13);
+  const day = now.slice(0, 10);
+  const previous = JSON.parse(props.getProperty('NGI_UFAQ_REQUEST_QUOTA') || '{}');
+  const hourly = previous.hour === hour ? previous.hourly : 0;
+  const daily = previous.day === day ? previous.daily : 0;
+  if (hourly >= 60 || daily >= 300) return false;
+  props.setProperty('NGI_UFAQ_REQUEST_QUOTA', JSON.stringify({hour:hour, day:day, hourly:hourly + 1, daily:daily + 1}));
+  return true;
+}
+
+/** Save UFAQ applications and CVs in the new storage, with safe retries. */
+function handleUfaqApplication_(request) {
+  const props = PropertiesService.getScriptProperties();
+  const id = props.getProperty(NGI_NEW_APPLICATIONS_ID);
+  const folderId = props.getProperty(NGI_NEW_CV_FOLDER_ID);
+  if (!id || !folderId) return membershipJson_({success:false,message:'UFAQ registration is not yet available.'});
+  const tokenHash = membershipDigest_(request.token);
+  const contentHash = membershipDigest_(JSON.stringify([request.fields, request.cv.name, request.cv.encoded]));
   const lock = LockService.getScriptLock();
-  if (!lock.tryLock(1000)) return false;
+  if (!lock.tryLock(3000)) return membershipJson_({success:false,message:'UFAQ is busy. Please try again later.'});
+  let reference;
   try {
-    const props = PropertiesService.getScriptProperties();
-    const now = new Date().toISOString();
-    const hour = now.slice(0, 13);
-    const day = now.slice(0, 10);
-    const previous = JSON.parse(props.getProperty('NGI_UFAQ_REQUEST_QUOTA') || '{}');
-    const hourly = previous.hour === hour ? previous.hourly : 0;
-    const daily = previous.day === day ? previous.daily : 0;
-    if (hourly >= 60 || daily >= 300) return false;
-    props.setProperty('NGI_UFAQ_REQUEST_QUOTA', JSON.stringify({hour:hour, day:day, hourly:hourly + 1, daily:daily + 1}));
-    return true;
-  } finally { lock.releaseLock(); }
-}
-
-/** Forward only to the fixed, existing UFAQ service. Never accept a URL from applicants. */
-function handleUfaqApplication_(raw) {
-  try {
-    if (ScriptApp.getService().getUrl() === NGI_UFAQ_LEGACY_ENDPOINT) {
-      return membershipJson_({success:false,message:'UFAQ service configuration needs administrator attention.'});
+    const sheet = SpreadsheetApp.openById(id).getSheetByName(NGI_UFAQ_SHEET);
+    const last = sheet.getLastRow();
+    if (last > 1) {
+      const match = sheet.getRange(2, 3, last - 1, 1).createTextFinder(tokenHash)
+        .matchEntireCell(true).matchCase(true).findNext();
+      if (match) {
+        const row = match.getRow();
+        if (sheet.getRange(row, 4).getDisplayValue() !== contentHash) {
+          return membershipJson_({success:false,message:'This form was already submitted. Reload the page to start a new application.'});
+        }
+        return membershipJson_({success:true,applicationId:sheet.getRange(row, 2).getDisplayValue()});
+      }
     }
-    if (!reserveUfaqRequest_()) {
-      return membershipJson_({success:false,message:'UFAQ is busy. Please try again later.'});
-    }
-    const response = UrlFetchApp.fetch(NGI_UFAQ_LEGACY_ENDPOINT, {
-      method: 'post',
-      contentType: 'text/plain;charset=utf-8',
-      payload: raw,
-      followRedirects: true,
-      muteHttpExceptions: true
-    });
-    const http = response.getResponseCode();
-    if (http < 200 || http >= 300) throw new Error('UFAQ service returned an HTTP error.');
-    const result = JSON.parse(response.getContentText());
-    if (!result || typeof result.success !== 'boolean') throw new Error('Unexpected UFAQ response.');
-    if (result.success === true) {
-      const ref = typeof result.applicationId === 'string' && /^[A-Za-z0-9_-]{1,80}$/.test(result.applicationId)
-        ? result.applicationId : '';
-      if (ref) sendWebsiteNotification_('UFAQ Volunteer', ref);
-      return membershipJson_({success:true,applicationId:ref});
-    }
-    return membershipJson_({success:false,message:'UFAQ could not accept the application. Please review your details or contact NGI.'});
+    if (!reserveUfaqRequest_(props)) return membershipJson_({success:false,message:'UFAQ is busy. Please try again later.'});
+    const folder = DriveApp.getFolderById(folderId);
+    // A retry after an uncertain Sheets write reuses the same upload.
+    const fileName = 'UFAQ-CV-' + membershipDigest_(tokenHash + ':' + contentHash).replace(/=+$/, '') + '.' + request.cv.extension;
+    const matches = folder.getFilesByName(fileName);
+    const file = matches.hasNext() ? matches.next() : folder.createFile(Utilities.newBlob(
+      Utilities.base64Decode(request.cv.encoded), request.cv.type, fileName));
+    reference = 'UFAQ-' + Utilities.getUuid().replace(/-/g, '').slice(0, 16).toUpperCase();
+    sheet.appendRow([new Date(), reference, tokenHash, contentHash].concat(
+      NGI_UFAQ_FIELDS.map(name => membershipSafeCell_(request.fields[name])), [file.getId()]));
+    SpreadsheetApp.flush();
   } catch (_) {
-    // Never retry automatically: the original service might have already saved the record.
-    console.error('UFAQ confirmation could not be obtained. Check the existing UFAQ deployment.');
-    return membershipJson_({success: false, message: 'UFAQ submission could not be confirmed. Please contact NGI before retrying.'});
-  }
+    return membershipJson_({success:false,message:'UFAQ submission could not be confirmed. Retry from this tab to use the same application.'});
+  } finally { lock.releaseLock(); }
+  sendWebsiteNotification_('UFAQ Volunteer', reference);
+  return membershipJson_({success:true,applicationId:reference});
 }
 
 function handleMembershipApplication_(data) {
@@ -247,7 +257,7 @@ function handleMembershipApplication_(data) {
     return membershipJson_({success: false, message: 'Please enter a valid email address.'});
   }
   const props = PropertiesService.getScriptProperties();
-  const id = props.getProperty('MEMBERSHIP_SHEET_ID');
+  const id = props.getProperty(NGI_NEW_APPLICATIONS_ID);
   if (!id) return membershipJson_({success:false,message:'Membership registration is not yet available.'});
   if (data.action === 'sendCode') return sendMembershipCode_(email, props);
   if (data.action !== 'apply' || data.consent !== 'on' || data.accuracy !== 'on') {
@@ -284,7 +294,7 @@ function handleMembershipApplication_(data) {
     if (!digest || !/^[A-F0-9]{12}$/.test(code) || digest !== membershipDigest_(code)) {
       return membershipJson_({success:false,message:'Enter a valid verification code or request a new one.'});
     }
-    const sheet = SpreadsheetApp.openById(id).getSheetByName('Applications');
+    const sheet = SpreadsheetApp.openById(id).getSheetByName(NGI_MEMBERSHIP_SHEET);
     const last = sheet.getLastRow();
     if (last > 1) {
       const match = sheet.getRange(2, 4, last - 1, 1).createTextFinder(email)
@@ -368,7 +378,7 @@ function sendWebsiteNotification_(form, reference) {
       body: 'A new ' + form + ' application has been saved.\n\n' +
         'Reference: ' + (reference || 'See private application records') + '\n' +
         'Received (Pakistan time): ' + when + '\n\n' +
-        'Please open the appropriate private applications spreadsheet to review the record.\n' +
+        'Please open the private NGI New Applications spreadsheet to review the record.\n' +
         'Applicant contact details and CV are not included in this notification.',
       name: 'NGI Applications'
     });

@@ -1,9 +1,11 @@
 # NGI website Apps Script
 
-`Code.gs` is the complete single-file website shared by Membership and UFAQ. Use it in the existing website Apps Script project. The older Membership-only source remains available for installations that run that form separately. Install one entry point per Apps Script project.
+`Code.gs` is the complete single-file website shared by Membership and UFAQ. Install it in the website Apps Script project used by both forms.
 
-Before releasing the GitHub frontend, update the existing website deployment to a new Apps Script version and keep its URL and Script Properties. In the editor, set `NGI_ADMIN_NOTIFICATION_EMAIL` to the admin inbox if alerts are needed, then run `setupWebsite` to authorize Sheets, mail and outbound requests. The website reuses the existing `MEMBERSHIP_SHEET_ID`. Verify the membership spreadsheet and legacy CV folder sharing with the deployment owner.
+Run `setupWebsite` in the Apps Script editor as the deployment owner and grant Sheets, Drive and mail access. Setup creates **NGI New Applications** with separate **Membership** and **UFAQ** tabs and **NGI New UFAQ CVs** in the owner's Drive. The script log contains both links. Re-running setup reuses those resources. Keep their sharing restricted to authorized staff. The UFAQ tab holds each uploaded file's Drive ID.
 
-Both GitHub forms use the website deployment URL in `membership/config.js`. The hosted Apps Script forms use the same script through `google.script.run`. Test membership email delivery, application submission and verified duplicate recovery using an admin-controlled address. Test a synthetic UFAQ application and CV and confirm the record and upload are retained by the legacy service. The UFAQ proxy validates requests and limits forwarding to 60 per UTC hour and 300 per UTC day. File signatures check basic file type only.
+Optionally set `NGI_ADMIN_NOTIFICATION_EMAIL` in Script Properties. Then publish a new version of the website deployment with the same URL. Both GitHub forms read that URL from `membership/config.js`. Use the health endpoint to check configuration after setup.
 
-The original UFAQ script still handles storage, CV access and duplicate decisions. Its direct endpoint and permissions require a separate review. This release does not modify that project or any existing records.
+The website writes only to its new storage. Existing projects, sheets and CV folders can still be opened independently. Membership verifies email ownership. UFAQ retries from the same form and unchanged application reuse their original reference and file. Requests submitted from fresh forms are recorded independently. The UFAQ limit is 60 new submissions per UTC hour and 300 per UTC day.
+
+After deployment, test both forms with synthetic applications and confirm new rows and CVs appear in the new resources.
