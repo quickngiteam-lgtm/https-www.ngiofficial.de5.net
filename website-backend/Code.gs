@@ -4,15 +4,14 @@
  * INSTALL:
  * 1. Open the website Apps Script project used by both forms.
  * 2. Back up old code; paste this entire file into Code.gs. Keep only one doGet/doPost.
- * 3. Set optional NGI_ADMIN_NOTIFICATION_EMAIL in Script Properties.
- * 4. Save, choose setupWebsite, Run once, and grant requested permissions.
- * 5. Deploy > Manage deployments > Edit > New version. Execute as: Me. Access: Anyone.
- * 6. Open its /exec URL for the full site. /exec?health=1 returns a setup status.
- * 7. Test synthetic applications before collecting real submissions.
+ * 3. Save, choose setupWebsite, Run once, and grant requested permissions.
+ * 4. Deploy > Manage deployments > Edit > New version. Execute as: Me. Access: Anyone.
+ * 5. Open its /exec URL for the full site. /exec?health=1 returns a setup status.
+ * 6. Test synthetic applications before collecting real submissions.
  *
  * Includes all six existing pages, navigation, original content, CSS, carousel,
  * responsive layouts, both application forms, local page images, backend routing,
- * private application storage and optional admin Gmail alerts.
+ * private application storage and applicant confirmation emails.
  * Remote brand logos and fonts retain their original HTTPS references.
  * This file is a complete Apps Script-hosted website, not a static GitHub index.html.
  * No separate HTML, CSS, JavaScript, or image files need to be uploaded.
@@ -227,9 +226,16 @@ function handleUfaqApplication_(request) {
       if (match) {
         const row = match.getRow();
         if (sheet.getRange(row, 4).getDisplayValue() !== contentHash) {
-          return membershipJson_({success:false,message:'This form was already submitted. Reload the page to start a new application.'});
+          return membershipJson_({success:false,message:'This form was already submitted. Contact NGI if you need to correct your application.'});
         }
         return membershipJson_({success:true,applicationId:sheet.getRange(row, 2).getDisplayValue()});
+      }
+      // Search only the UFAQ tab, so this address can also submit one Membership application.
+      const emailColumn = 5 + NGI_UFAQ_FIELDS.indexOf('Email_Address');
+      const existingEmail = sheet.getRange(2, emailColumn, last - 1, 1)
+        .createTextFinder(request.fields.Email_Address).matchEntireCell(true).matchCase(false).findNext();
+      if (existingEmail) {
+        return membershipJson_({success:false,message:'Only one UFAQ application per email address is allowed. Contact NGI if you need assistance.'});
       }
     }
     if (!reserveUfaqRequest_(props)) return membershipJson_({success:false,message:'UFAQ is busy. Please try again later.'});
@@ -246,8 +252,8 @@ function handleUfaqApplication_(request) {
   } catch (_) {
     return membershipJson_({success:false,message:'UFAQ submission could not be confirmed. Retry from this tab to use the same application.'});
   } finally { lock.releaseLock(); }
-  sendWebsiteNotification_('UFAQ Volunteer', reference);
-  return membershipJson_({success:true,applicationId:reference});
+  const receiptSent = sendWebsiteReceipt_('UFAQ Volunteer', reference, request.fields.Email_Address);
+  return membershipJson_({success:true,applicationId:reference,receiptSent:receiptSent});
 }
 
 function handleMembershipApplication_(data) {
@@ -315,8 +321,8 @@ function handleMembershipApplication_(data) {
   } catch (_) {
     return membershipJson_({success:false,message:'Unable to save the application. Please try again.'});
   } finally { lock.releaseLock(); }
-  sendWebsiteNotification_('NGI Membership', reference);
-  return membershipJson_({success:true,reference:reference});
+  const receiptSent = sendWebsiteReceipt_('NGI Membership', reference, clean.email);
+  return membershipJson_({success:true,reference:reference,receiptSent:receiptSent});
 }
 
 function sendMembershipCode_(email, props) {
@@ -367,29 +373,25 @@ function membershipJson_(data) {
   return ContentService.createTextOutput(JSON.stringify(data)).setMimeType(ContentService.MimeType.JSON);
 }
 
-/** Shared notification helper; an email error never invalidates an accepted application. */
-function sendWebsiteNotification_(form, reference) {
+/** Send only to the applicant after the application has been saved. */
+function sendWebsiteReceipt_(form, reference, applicant) {
   try {
-    const recipient = PropertiesService.getScriptProperties().getProperty('NGI_ADMIN_NOTIFICATION_EMAIL');
-    if (!recipient) return;
     if (MailApp.getRemainingDailyQuota() < 1) throw new Error('Daily mail quota exhausted.');
-    const when = Utilities.formatDate(new Date(), 'Asia/Karachi', 'dd MMM yyyy, hh:mm a');
-    const subject = 'New ' + form + ' Application';
     MailApp.sendEmail({
-      to: recipient,
-      subject: subject,
-      body: 'A new ' + form + ' application has been saved.\n\n' +
-        'Reference: ' + (reference || 'See private application records') + '\n' +
-        'Received (Pakistan time): ' + when + '\n\n' +
-        'Please open the private NGI New Applications spreadsheet to review the record.\n' +
-        'Applicant contact details and CV are not included in this notification.',
+      to: applicant,
+      subject: 'NGI confirmation: ' + form + ' application received',
+      body: 'Thank you for applying to the Next Generation Initiative (NGI). We have received your ' +
+        form + ' application.\n\nYour reference number is ' + reference +
+        '. Please keep it for your records.\n\nThe relevant NGI team will review your application and contact you ' +
+        'with information about the next steps.\n\nKind regards,\nNext Generation Initiative (NGI)',
       name: 'NGI Applications'
     });
+    return true;
   } catch (_) {
-    console.error(form + ' notification could not be sent. Check mail authorization and recipient quota.');
+    console.error('NGI applicant confirmation could not be sent. Check mail authorization and quota.');
+    return false;
   }
 }
-
 
 // --- Website pages, styles and image contents (embedded) ---
 const NGI_DEFAULT_WEBSITE_URL = "https://script.google.com/macros/s/AKfycby56RrXyIV1Hf4L0XvcOgkR30UorRdv_1Y3FOUlkGW8F3522_BPcmAPe5UbKfPefH_YlQ/exec";
@@ -551,6 +553,56 @@ const NGI_EMBEDDED_IMAGES = {
 ].join('')
 };
 
+const NGI_WHATSAPP_HELP_HTML = `<aside class="ngi-whatsapp-help" aria-label="Help and support">
+  <p>Need help with the website or an application?</p>
+  <a href="https://wa.me/923043003600" target="_blank" rel="noopener noreferrer">Chat on WhatsApp</a>
+</aside>`;
+const NGI_WHATSAPP_HELP_CSS = `.ngi-whatsapp-help {
+  position: fixed;
+  right: max(1rem, env(safe-area-inset-right));
+  bottom: max(1rem, env(safe-area-inset-bottom));
+  z-index: 30;
+  max-width: min(14rem, calc(100vw - 2rem));
+  padding: .65rem;
+  border: 1px solid #cbdcd3;
+  border-radius: .75rem;
+  background: #fff;
+  color: #18352a;
+  box-shadow: 0 3px 16px #132e2426;
+  font: 600 .875rem/1.35 "Source Sans 3", system-ui, sans-serif;
+}
+
+.ngi-whatsapp-help p {
+  margin: 0 0 .35rem;
+}
+
+.ngi-whatsapp-help a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: .4rem .7rem;
+  border-radius: .45rem;
+  background: #126442;
+  color: #fff;
+  text-decoration: none;
+}
+
+.ngi-whatsapp-help a:hover {
+  background: #0b5034;
+}
+
+.ngi-whatsapp-help a:focus-visible {
+  outline: 3px solid #174975;
+  outline-offset: 3px;
+}
+
+@media (max-height: 420px) {
+  .ngi-whatsapp-help {
+    position: static;
+    margin: 1rem 1rem 1rem auto;
+  }
+}`;
+
 function renderWebsite_(requestedPage, requestedSection) {
   const candidate = String(requestedPage || 'home');
   const page = Object.prototype.hasOwnProperty.call(NGI_HTML_PAGES, candidate) ? candidate : 'home';
@@ -571,6 +623,9 @@ function renderWebsite_(requestedPage, requestedSection) {
   Object.keys(NGI_EMBEDDED_IMAGES).forEach(key => {
     if (documentHtml.indexOf(key) !== -1) documentHtml = documentHtml.split(key).join(NGI_EMBEDDED_IMAGES[key]);
   });
+  documentHtml = documentHtml
+    .replace('</head>', '<style>' + NGI_WHATSAPP_HELP_CSS + '</style></head>')
+    .replace('</body>', NGI_WHATSAPP_HELP_HTML + '</body>');
   return HtmlService.createHtmlOutput(documentHtml)
     .setTitle(NGI_PAGE_TITLES[page])
     .addMetaTag('viewport','width=device-width,initial-scale=1');
