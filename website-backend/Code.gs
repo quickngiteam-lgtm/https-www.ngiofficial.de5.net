@@ -228,9 +228,16 @@ function handleUfaqApplication_(request) {
       if (match) {
         const row = match.getRow();
         if (sheet.getRange(row, 4).getDisplayValue() !== contentHash) {
-          return membershipJson_({success:false,message:'This form was already submitted. Reload the page to start a new application.'});
+          return membershipJson_({success:false,message:'This form was already submitted. Contact NGI if you need to correct your application.'});
         }
         return membershipJson_({success:true,applicationId:sheet.getRange(row, 2).getDisplayValue()});
+      }
+      // Search only the UFAQ tab, so this address can also submit one Membership application.
+      const emailColumn = 5 + NGI_UFAQ_FIELDS.indexOf('Email_Address');
+      const existingEmail = sheet.getRange(2, emailColumn, last - 1, 1)
+        .createTextFinder(request.fields.Email_Address).matchEntireCell(true).matchCase(false).findNext();
+      if (existingEmail) {
+        return membershipJson_({success:false,message:'Only one UFAQ application per email address is allowed. Contact NGI if you need assistance.'});
       }
     }
     if (!reserveUfaqRequest_(props)) return membershipJson_({success:false,message:'UFAQ is busy. Please try again later.'});
