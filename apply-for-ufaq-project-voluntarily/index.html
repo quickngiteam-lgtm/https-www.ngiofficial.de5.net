@@ -476,11 +476,12 @@
 </div>
 </div>
 
+<script src="../membership/config.js?v=website-endpoint-1"></script>
 <script>
 (function () {
   "use strict";
 
-  var WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyGDYlEFVmlBwYvuKlRzXZe4BOR1yQ8310L7G46lLOvmp9FesE7lmLjvq6oWP7EINLKNA/exec";
+  var WEB_APP_URL = String(window.NGI_MEMBERSHIP_ENDPOINT || "").trim();
 
   var MIN_AGE = 17;
   var MAX_CV_BYTES = 500 * 1024;
@@ -937,7 +938,8 @@
         showAlert("err", (err && err.message) ? err.message : "Network error. Please check your connection and try again.");
       });
     });
-    btn.disabled = false;
+    btn.disabled = !/^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+\/exec$/.test(WEB_APP_URL);
+    if (btn.disabled) showAlert("err", "UFAQ registration is temporarily unavailable.");
   }
 
   var tries = 0;
