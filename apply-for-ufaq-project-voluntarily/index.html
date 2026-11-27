@@ -149,6 +149,23 @@
  .apf-name{font-size:25px}
  .ufaq-hero .proj-title{font-size:21px}
 }
+
+/* Successful UFAQ confirmation, using the main NGI brand typography and colours. */
+#successPopup:not([open]){display:none}
+#successPopup.ufaq-success-dialog{position:fixed;inset:0;margin:auto;width:min(540px,calc(100% - 32px));max-width:calc(100% - 32px);height:fit-content;max-height:calc(100% - 32px);overflow:auto;padding:28px 30px 26px;box-sizing:border-box;border:1px solid var(--edge);border-top:6px solid var(--accent);border-radius:14px;background:var(--paper);color:var(--ink);font-family:var(--font);text-align:center;box-shadow:0 20px 70px #0a315449;z-index:99999}
+#successPopup::backdrop{background:rgba(10,31,61,.65)}
+#successPopup .ufaq-success-icon{width:62px;height:62px;border-radius:50%;margin:0 auto 12px;display:grid;place-items:center;background:#e1f8ed;color:var(--accent);border:2px solid #b0e5c9}
+#successPopup .ufaq-success-icon svg{width:32px;height:32px}
+#successPopup .ufaq-success-foundation{font-size:18px;font-weight:750;color:var(--navy);line-height:1.3;margin:0 0 4px}
+#successPopup h2{font-size:clamp(25px,5vw,31px);color:var(--navy);font-weight:800;line-height:1.15;margin:9px 0 15px}
+#successPopup p{font-size:15px;color:var(--muted);line-height:1.55;margin:0 0 13px}
+#successPopup .ufaq-success-reference{background:#edf9f2;border:1px solid #b8e8cc;border-radius:7px;color:#065f46;padding:13px 12px;margin:0 0 16px;font-size:18px;font-weight:800;overflow-wrap:anywhere}
+#successPopup .ufaq-success-note{background:var(--tint);border-left:4px solid var(--blue);border-radius:3px;padding:12px;text-align:left;font-size:13px;color:var(--muted);font-style:italic}
+#successPopup .ufaq-success-tagline{font-weight:750;color:var(--accent)}
+#successPopup .ufaq-success-partner{border-top:1px solid var(--edge);padding:12px 0 0;color:var(--muted);font-weight:700;font-size:13px;line-height:1.4}
+#successPopup #popupCloseBtn{border:0;border-radius:4px;background:var(--blue);color:#fff;font-size:16px;font-weight:750;padding:12px 36px;margin-top:18px;cursor:pointer}
+#successPopup #popupCloseBtn:hover{background:var(--blue-dark)}
+@media(max-width:480px){#successPopup.ufaq-success-dialog{padding:22px 18px}#successPopup .ufaq-success-icon{width:54px;height:54px}#successPopup p{font-size:14px}#successPopup #popupCloseBtn{width:100%}}
 </style>
 
 <div id="ufaqWrap">
@@ -430,23 +447,19 @@
 </div>
 
 <!-- SUCCESS POPUP -->
-<div id="successPopup" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.6);z-index:99999;justify-content:center;align-items:center;padding:20px;overflow-y:auto">
-<div style="background:#fff;max-width:520px;width:100%;border-radius:16px;padding:30px;box-shadow:0 20px 40px rgba(0,0,0,.2);border-top:6px solid #047857;text-align:center;margin:auto">
-<div style="width:60px;height:60px;border-radius:50%;background:#ECFDF5;color:#047857;font-size:30px;line-height:60px;margin:0 auto 12px;font-weight:900">&#10003;</div>
-<div style="font-family:'Playfair Display',Georgia,serif;font-size:25px;font-weight:900;color:#0A1F3D;margin:0 0 4px">Amarta Peace Foundation</div>
-<div style="font-size:12.5px;font-weight:800;color:#047857;text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px">UFAQ Programme</div>
-<h2 style="font-family:'Playfair Display',Georgia,serif;margin:0 0 10px;color:#0A1F3D;font-size:22px;font-weight:900">&#127881; Submitted Successfully!</h2>
-<div id="appIdBadge" style="display:none;background:#F0FDFA;border:1.5px solid #0D9488;color:#0A1F3D;padding:8px 14px;border-radius:8px;font-size:13.5px;font-weight:800;margin:0 auto 12px;max-width:300px"></div>
-<p style="margin:0 0 12px;font-size:14px;color:#334155;line-height:1.6;font-weight:600">Your volunteer application has been successfully submitted to Next Generation Initiative (NGI) for UFAQ, a flagship programme of Amarta Peace Foundation.</p>
-<p style="margin:0 0 14px;font-size:13.5px;color:#475569;line-height:1.6">Our relevant team will review your application and contact you at your provided WhatsApp number or email address.</p>
-<p style="margin:0 0 14px;font-size:12px;color:#64748B;font-style:italic;line-height:1.6;background:#F8FAFC;padding:10px;border-radius:8px;border-left:3px solid #64748B;text-align:left">
-Note: Next Generation Initiative (NGI) is an independent, unincorporated, student-led youth initiative inviting volunteers in partnership with Amarta Peace Foundation.
-</p>
-<p style="margin:0 0 18px;font-size:13.5px;color:#047857;font-weight:700;font-style:italic">Together, We Can Make a Difference.</p>
-<div style="border-top:1px solid #E2E8F0;padding-top:12px;font-size:12.5px;color:#64748B;font-weight:700">Team NGI | In Partnership with Amarta Peace Foundation</div>
-<button id="popupCloseBtn" type="button" style="margin-top:18px;background:#047857;color:#fff;border:none;padding:10px 26px;border-radius:8px;font-weight:800;cursor:pointer">Close</button>
-</div>
-</div>
+<dialog id="successPopup" class="ufaq-success-dialog" aria-labelledby="ufaq-success-title" aria-describedby="ufaq-success-description">
+  <div class="ufaq-success-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4 4L19 6"/></svg></div>
+  <div class="ufaq-success-foundation">Amarta Peace Foundation</div>
+  <span class="eyebrow">UFAQ Programme</span>
+  <h2 id="ufaq-success-title">Submitted Successfully!</h2>
+  <div id="appIdBadge" class="ufaq-success-reference" style="display:none"></div>
+  <p id="ufaq-success-description">Your volunteer application has been successfully submitted to Next Generation Initiative (NGI) for UFAQ, a flagship programme of Amarta Peace Foundation.</p>
+  <p>Our relevant team will review your application and contact you at your provided WhatsApp number or email address.</p>
+  <p class="ufaq-success-note">Note: Next Generation Initiative (NGI) is an independent, unincorporated, student-led youth initiative inviting volunteers in partnership with Amarta Peace Foundation.</p>
+  <p class="ufaq-success-tagline">Together, We Can Make a Difference.</p>
+  <div class="ufaq-success-partner">Team NGI | In Partnership with Amarta Peace Foundation</div>
+  <button id="popupCloseBtn" type="button">Close</button>
+</dialog>
 
 <!-- DUPLICATE SUBMISSION POPUP -->
 <div id="duplicatePopup" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(10,31,61,.68);z-index:100000;justify-content:center;align-items:center;padding:20px;overflow-y:auto">
@@ -733,17 +746,25 @@ Note: Next Generation Initiative (NGI) is an independent, unincorporated, studen
       });
     }
 
-    if (closeBtn) {
+    var nativeSuccessDialog = popup && typeof popup.showModal === "function" && typeof popup.close === "function";
+    function resetAfterSuccess() {
+      form.reset();
+      if (cvStatus) cvStatus.textContent = "";
+      toggleGuardianBox();
+      formCard.style.display = "block";
+      submitting = false;
+      pageLoadedAt = Date.now();
+      submissionToken = generateToken(32);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+    if (popup && nativeSuccessDialog) popup.addEventListener("close", resetAfterSuccess);
+    if (closeBtn && popup) {
       closeBtn.addEventListener("click", function () {
-        popup.style.display = "none";
-        form.reset();
-        if (cvStatus) cvStatus.textContent = "";
-        toggleGuardianBox();
-        formCard.style.display = "block";
-        submitting = false;
-        pageLoadedAt = Date.now();
-        submissionToken = generateToken(32);
-        window.scrollTo({ top: 0, behavior: "smooth" });
+        if (nativeSuccessDialog) popup.close();
+        else {
+          popup.removeAttribute("open");
+          resetAfterSuccess();
+        }
       });
     }
 
@@ -782,7 +803,12 @@ Note: Next Generation Initiative (NGI) is an independent, unincorporated, studen
           badge.style.display = "none";
         }
       }
-      popup.style.display = "flex";
+      if (nativeSuccessDialog) {
+        if (!popup.open) popup.showModal();
+      } else {
+        popup.setAttribute("open", "");
+      }
+      if (closeBtn) closeBtn.focus({preventScroll: true});
     }
 
     form.addEventListener("submit", function (ev) {
