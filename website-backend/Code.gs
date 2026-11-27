@@ -4,7 +4,7 @@
  * INSTALL:
  * 1. Open the website Apps Script project used by both forms.
  * 2. Back up old code; paste this entire file into Code.gs. Keep only one doGet/doPost.
- * 3. Set optional NGI_ADMIN_NOTIFICATION_EMAIL in Script Properties.
+ * 3. Set NGI_ADMIN_NOTIFICATION_EMAIL in Script Properties to override the NGI inbox.
  * 4. Save, choose setupWebsite, Run once, and grant requested permissions.
  * 5. Deploy > Manage deployments > Edit > New version. Execute as: Me. Access: Anyone.
  * 6. Open its /exec URL for the full site. /exec?health=1 returns a setup status.
@@ -22,6 +22,7 @@
  */
 const NGI_NEW_APPLICATIONS_ID = 'NGI_NEW_APPLICATIONS_SHEET_ID';
 const NGI_NEW_CV_FOLDER_ID = 'NGI_NEW_UFAQ_CV_FOLDER_ID';
+const NGI_DEFAULT_ADMIN_NOTIFICATION_EMAIL = 'quickngiteam@gmail.com';
 const NGI_STORAGE_READY = 'NGI_NEW_STORAGE_READY';
 const NGI_MEMBERSHIP_SHEET = 'Membership';
 const NGI_UFAQ_SHEET = 'UFAQ';
@@ -246,8 +247,8 @@ function handleUfaqApplication_(request) {
   } catch (_) {
     return membershipJson_({success:false,message:'UFAQ submission could not be confirmed. Retry from this tab to use the same application.'});
   } finally { lock.releaseLock(); }
-  sendWebsiteNotification_('UFAQ Volunteer', reference);
-  return membershipJson_({success:true,applicationId:reference});
+  const receiptSent = sendWebsiteNotifications_('UFAQ Volunteer', reference, request.fields.Email_Address);
+  return membershipJson_({success:true,applicationId:reference,receiptSent:receiptSent});
 }
 
 function handleMembershipApplication_(data) {
@@ -315,8 +316,8 @@ function handleMembershipApplication_(data) {
   } catch (_) {
     return membershipJson_({success:false,message:'Unable to save the application. Please try again.'});
   } finally { lock.releaseLock(); }
-  sendWebsiteNotification_('NGI Membership', reference);
-  return membershipJson_({success:true,reference:reference});
+  const receiptSent = sendWebsiteNotifications_('NGI Membership', reference, clean.email);
+  return membershipJson_({success:true,reference:reference,receiptSent:receiptSent});
 }
 
 function sendMembershipCode_(email, props) {
@@ -367,29 +368,38 @@ function membershipJson_(data) {
   return ContentService.createTextOutput(JSON.stringify(data)).setMimeType(ContentService.MimeType.JSON);
 }
 
-/** Shared notification helper; an email error never invalidates an accepted application. */
-function sendWebsiteNotification_(form, reference) {
+/** Notify the admin and applicant independently after a new application is saved. */
+function sendWebsiteNotifications_(form, reference, applicant) {
   try {
-    const recipient = PropertiesService.getScriptProperties().getProperty('NGI_ADMIN_NOTIFICATION_EMAIL');
-    if (!recipient) return;
-    if (MailApp.getRemainingDailyQuota() < 1) throw new Error('Daily mail quota exhausted.');
-    const when = Utilities.formatDate(new Date(), 'Asia/Karachi', 'dd MMM yyyy, hh:mm a');
-    const subject = 'New ' + form + ' Application';
-    MailApp.sendEmail({
-      to: recipient,
-      subject: subject,
-      body: 'A new ' + form + ' application has been saved.\n\n' +
-        'Reference: ' + (reference || 'See private application records') + '\n' +
-        'Received (Pakistan time): ' + when + '\n\n' +
-        'Please open the private NGI New Applications spreadsheet to review the record.\n' +
-        'Applicant contact details and CV are not included in this notification.',
-      name: 'NGI Applications'
-    });
+    const props = PropertiesService.getScriptProperties();
+    const admin = String(props.getProperty('NGI_ADMIN_NOTIFICATION_EMAIL') || '').trim() || NGI_DEFAULT_ADMIN_NOTIFICATION_EMAIL;
+    sendWebsiteMail_(admin, 'New ' + form + ' application',
+      'A new ' + form + ' application has been saved.\n\nReference: ' + reference +
+      '\n\nOpen the private NGI New Applications spreadsheet to review it.', 'admin');
   } catch (_) {
-    console.error(form + ' notification could not be sent. Check mail authorization and recipient quota.');
+    console.error('Could not prepare NGI admin notification.');
   }
+  return sendWebsiteMail_(applicant, form + ' application received',
+    'NGI has received your ' + form + ' application.\n\nReference: ' + reference +
+    '\n\nKeep this reference for your records. The NGI team will contact you about next steps. ' +
+    'If you did not submit an application, you can ignore this message.', 'applicant');
 }
 
+function sendWebsiteMail_(recipient, subject, body, audience) {
+  // Accept a single mailbox and keep applicant data out of error logs.
+  if (!/^[a-z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-z0-9-]+(?:\.[a-z0-9-]+)+$/i.test(recipient)) {
+    console.error('Invalid NGI ' + audience + ' notification address.');
+    return false;
+  }
+  try {
+    if (MailApp.getRemainingDailyQuota() < 1) throw new Error('Daily mail quota exhausted.');
+    MailApp.sendEmail({to:recipient, subject:subject, body:body, name:'NGI Applications'});
+    return true;
+  } catch (_) {
+    console.error('NGI ' + audience + ' notification failed. Check mail authorization and quota.');
+    return false;
+  }
+}
 
 // --- Website pages, styles and image contents (embedded) ---
 const NGI_DEFAULT_WEBSITE_URL = "https://script.google.com/macros/s/AKfycby56RrXyIV1Hf4L0XvcOgkR30UorRdv_1Y3FOUlkGW8F3522_BPcmAPe5UbKfPefH_YlQ/exec";
