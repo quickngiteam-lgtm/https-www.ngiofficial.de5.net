@@ -4,15 +4,14 @@
  * INSTALL:
  * 1. Open the website Apps Script project used by both forms.
  * 2. Back up old code; paste this entire file into Code.gs. Keep only one doGet/doPost.
- * 3. Set NGI_ADMIN_NOTIFICATION_EMAIL in Script Properties to override the NGI inbox.
- * 4. Save, choose setupWebsite, Run once, and grant requested permissions.
- * 5. Deploy > Manage deployments > Edit > New version. Execute as: Me. Access: Anyone.
- * 6. Open its /exec URL for the full site. /exec?health=1 returns a setup status.
- * 7. Test synthetic applications before collecting real submissions.
+ * 3. Save, choose setupWebsite, Run once, and grant requested permissions.
+ * 4. Deploy > Manage deployments > Edit > New version. Execute as: Me. Access: Anyone.
+ * 5. Open its /exec URL for the full site. /exec?health=1 returns a setup status.
+ * 6. Test synthetic applications before collecting real submissions.
  *
  * Includes all six existing pages, navigation, original content, CSS, carousel,
  * responsive layouts, both application forms, local page images, backend routing,
- * private application storage and optional admin Gmail alerts.
+ * private application storage and applicant confirmation emails.
  * Remote brand logos and fonts retain their original HTTPS references.
  * This file is a complete Apps Script-hosted website, not a static GitHub index.html.
  * No separate HTML, CSS, JavaScript, or image files need to be uploaded.
@@ -22,7 +21,6 @@
  */
 const NGI_NEW_APPLICATIONS_ID = 'NGI_NEW_APPLICATIONS_SHEET_ID';
 const NGI_NEW_CV_FOLDER_ID = 'NGI_NEW_UFAQ_CV_FOLDER_ID';
-const NGI_DEFAULT_ADMIN_NOTIFICATION_EMAIL = 'quickngiteam@gmail.com';
 const NGI_STORAGE_READY = 'NGI_NEW_STORAGE_READY';
 const NGI_MEMBERSHIP_SHEET = 'Membership';
 const NGI_UFAQ_SHEET = 'UFAQ';
@@ -254,7 +252,7 @@ function handleUfaqApplication_(request) {
   } catch (_) {
     return membershipJson_({success:false,message:'UFAQ submission could not be confirmed. Retry from this tab to use the same application.'});
   } finally { lock.releaseLock(); }
-  const receiptSent = sendWebsiteNotifications_('UFAQ Volunteer', reference, request.fields.Email_Address);
+  const receiptSent = sendWebsiteReceipt_('UFAQ Volunteer', reference, request.fields.Email_Address);
   return membershipJson_({success:true,applicationId:reference,receiptSent:receiptSent});
 }
 
@@ -323,7 +321,7 @@ function handleMembershipApplication_(data) {
   } catch (_) {
     return membershipJson_({success:false,message:'Unable to save the application. Please try again.'});
   } finally { lock.releaseLock(); }
-  const receiptSent = sendWebsiteNotifications_('NGI Membership', reference, clean.email);
+  const receiptSent = sendWebsiteReceipt_('NGI Membership', reference, clean.email);
   return membershipJson_({success:true,reference:reference,receiptSent:receiptSent});
 }
 
@@ -375,35 +373,22 @@ function membershipJson_(data) {
   return ContentService.createTextOutput(JSON.stringify(data)).setMimeType(ContentService.MimeType.JSON);
 }
 
-/** Notify the admin and applicant independently after a new application is saved. */
-function sendWebsiteNotifications_(form, reference, applicant) {
-  try {
-    const props = PropertiesService.getScriptProperties();
-    const admin = String(props.getProperty('NGI_ADMIN_NOTIFICATION_EMAIL') || '').trim() || NGI_DEFAULT_ADMIN_NOTIFICATION_EMAIL;
-    sendWebsiteMail_(admin, 'New ' + form + ' application',
-      'A new ' + form + ' application has been saved.\n\nReference: ' + reference +
-      '\n\nOpen the private NGI New Applications spreadsheet to review it.', 'admin');
-  } catch (_) {
-    console.error('Could not prepare NGI admin notification.');
-  }
-  return sendWebsiteMail_(applicant, form + ' application received',
-    'NGI has received your ' + form + ' application.\n\nReference: ' + reference +
-    '\n\nKeep this reference for your records. The NGI team will contact you about next steps. ' +
-    'If you did not submit an application, you can ignore this message.', 'applicant');
-}
-
-function sendWebsiteMail_(recipient, subject, body, audience) {
-  // Accept a single mailbox and keep applicant data out of error logs.
-  if (!/^[a-z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-z0-9-]+(?:\.[a-z0-9-]+)+$/i.test(recipient)) {
-    console.error('Invalid NGI ' + audience + ' notification address.');
-    return false;
-  }
+/** Send only to the applicant after the application has been saved. */
+function sendWebsiteReceipt_(form, reference, applicant) {
   try {
     if (MailApp.getRemainingDailyQuota() < 1) throw new Error('Daily mail quota exhausted.');
-    MailApp.sendEmail({to:recipient, subject:subject, body:body, name:'NGI Applications'});
+    MailApp.sendEmail({
+      to: applicant,
+      subject: 'NGI confirmation: ' + form + ' application received',
+      body: 'Thank you for applying to the Next Generation Initiative (NGI). We have received your ' +
+        form + ' application.\n\nYour reference number is ' + reference +
+        '. Please keep it for your records.\n\nThe relevant NGI team will review your application and contact you ' +
+        'with information about the next steps.\n\nKind regards,\nNext Generation Initiative (NGI)',
+      name: 'NGI Applications'
+    });
     return true;
   } catch (_) {
-    console.error('NGI ' + audience + ' notification failed. Check mail authorization and quota.');
+    console.error('NGI applicant confirmation could not be sent. Check mail authorization and quota.');
     return false;
   }
 }
@@ -568,6 +553,56 @@ const NGI_EMBEDDED_IMAGES = {
 ].join('')
 };
 
+const NGI_WHATSAPP_HELP_HTML = `<aside class="ngi-whatsapp-help" aria-label="Help and support">
+  <p>Need help with the website or an application?</p>
+  <a href="https://wa.me/923043003600" target="_blank" rel="noopener noreferrer">Chat on WhatsApp</a>
+</aside>`;
+const NGI_WHATSAPP_HELP_CSS = `.ngi-whatsapp-help {
+  position: fixed;
+  right: max(1rem, env(safe-area-inset-right));
+  bottom: max(1rem, env(safe-area-inset-bottom));
+  z-index: 30;
+  max-width: min(14rem, calc(100vw - 2rem));
+  padding: .65rem;
+  border: 1px solid #cbdcd3;
+  border-radius: .75rem;
+  background: #fff;
+  color: #18352a;
+  box-shadow: 0 3px 16px #132e2426;
+  font: 600 .875rem/1.35 "Source Sans 3", system-ui, sans-serif;
+}
+
+.ngi-whatsapp-help p {
+  margin: 0 0 .35rem;
+}
+
+.ngi-whatsapp-help a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: .4rem .7rem;
+  border-radius: .45rem;
+  background: #126442;
+  color: #fff;
+  text-decoration: none;
+}
+
+.ngi-whatsapp-help a:hover {
+  background: #0b5034;
+}
+
+.ngi-whatsapp-help a:focus-visible {
+  outline: 3px solid #174975;
+  outline-offset: 3px;
+}
+
+@media (max-height: 420px) {
+  .ngi-whatsapp-help {
+    position: static;
+    margin: 1rem 1rem 1rem auto;
+  }
+}`;
+
 function renderWebsite_(requestedPage, requestedSection) {
   const candidate = String(requestedPage || 'home');
   const page = Object.prototype.hasOwnProperty.call(NGI_HTML_PAGES, candidate) ? candidate : 'home';
@@ -588,6 +623,9 @@ function renderWebsite_(requestedPage, requestedSection) {
   Object.keys(NGI_EMBEDDED_IMAGES).forEach(key => {
     if (documentHtml.indexOf(key) !== -1) documentHtml = documentHtml.split(key).join(NGI_EMBEDDED_IMAGES[key]);
   });
+  documentHtml = documentHtml
+    .replace('</head>', '<style>' + NGI_WHATSAPP_HELP_CSS + '</style></head>')
+    .replace('</body>', NGI_WHATSAPP_HELP_HTML + '</body>');
   return HtmlService.createHtmlOutput(documentHtml)
     .setTitle(NGI_PAGE_TITLES[page])
     .addMetaTag('viewport','width=device-width,initial-scale=1');
