@@ -22,6 +22,7 @@
  */
 const NGI_NEW_APPLICATIONS_ID = 'NGI_NEW_APPLICATIONS_SHEET_ID';
 const NGI_NEW_CV_FOLDER_ID = 'NGI_NEW_UFAQ_CV_FOLDER_ID';
+const NGI_STORAGE_READY = 'NGI_NEW_STORAGE_READY';
 const NGI_MEMBERSHIP_SHEET = 'Membership';
 const NGI_UFAQ_SHEET = 'UFAQ';
 const NGI_MEMBERSHIP_FIELDS = ['fullName', 'email', 'phone', 'district', 'city', 'education', 'institution', 'interest', 'availability', 'reason'];
@@ -55,7 +56,9 @@ function setupWebsite() {
     }
     Logger.log('New applications spreadsheet: ' + book.getUrl());
     Logger.log('New UFAQ CV folder: ' + DriveApp.getFolderById(props.getProperty(NGI_NEW_CV_FOLDER_ID)).getUrl());
-    Logger.log('Remaining daily email recipient quota: ' + MailApp.getRemainingDailyQuota());
+    const quota = MailApp.getRemainingDailyQuota();
+    props.setProperty(NGI_STORAGE_READY, '1');
+    Logger.log('Remaining daily email recipient quota: ' + quota);
   } finally { lock.releaseLock(); }
 }
 
@@ -69,7 +72,7 @@ function doGet(e) {
   const params = (e && e.parameter) || {};
   if (String(params.health || '') === '1') {
     const props = PropertiesService.getScriptProperties();
-    const sheetConfigured = !!props.getProperty(NGI_NEW_APPLICATIONS_ID);
+    const sheetConfigured = props.getProperty(NGI_STORAGE_READY) === '1' && !!props.getProperty(NGI_NEW_APPLICATIONS_ID);
     return membershipJson_({success:true,service:'NGI Website',forms:['membership','ufaq'],
       membershipConfigured:sheetConfigured,ufaqConfigured:sheetConfigured && !!props.getProperty(NGI_NEW_CV_FOLDER_ID)});
   }
@@ -209,7 +212,7 @@ function handleUfaqApplication_(request) {
   const props = PropertiesService.getScriptProperties();
   const id = props.getProperty(NGI_NEW_APPLICATIONS_ID);
   const folderId = props.getProperty(NGI_NEW_CV_FOLDER_ID);
-  if (!id || !folderId) return membershipJson_({success:false,message:'UFAQ registration is not yet available.'});
+  if (!id || !folderId || props.getProperty(NGI_STORAGE_READY) !== '1') return membershipJson_({success:false,message:'UFAQ registration is not yet available.'});
   const tokenHash = membershipDigest_(request.token);
   const contentHash = membershipDigest_(JSON.stringify([request.fields, request.cv.name, request.cv.encoded]));
   const lock = LockService.getScriptLock();
@@ -258,7 +261,7 @@ function handleMembershipApplication_(data) {
   }
   const props = PropertiesService.getScriptProperties();
   const id = props.getProperty(NGI_NEW_APPLICATIONS_ID);
-  if (!id) return membershipJson_({success:false,message:'Membership registration is not yet available.'});
+  if (!id || props.getProperty(NGI_STORAGE_READY) !== '1') return membershipJson_({success:false,message:'Membership registration is not yet available.'});
   if (data.action === 'sendCode') return sendMembershipCode_(email, props);
   if (data.action !== 'apply' || data.consent !== 'on' || data.accuracy !== 'on') {
     return membershipJson_({success: false, message: 'Please complete all required fields and declarations.'});
