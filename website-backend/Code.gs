@@ -555,24 +555,30 @@ const NGI_EMBEDDED_IMAGES = {
 
 const NGI_WHATSAPP_HELP_HTML = `<a class="ngi-whatsapp-help" href="https://wa.me/923043003600" target="_blank" rel="noopener noreferrer" aria-label="Live Chat Support on WhatsApp" title="Live Chat Support">
   <span aria-hidden="true"></span>
+  Live Chat Support
 </a>`;
 const NGI_WHATSAPP_HELP_CSS = `.ngi-whatsapp-help {
   position: fixed;
   right: max(.75rem, env(safe-area-inset-right));
   bottom: max(.75rem, env(safe-area-inset-bottom));
   z-index: 30;
-  display: grid;
-  place-items: center;
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  gap: .45rem;
+  min-height: 44px;
+  padding: 0 .8rem;
+  border-radius: 999px;
   background: #126442;
   color: #fff;
   box-shadow: 0 2px 8px #132e2433;
+  font: 600 .875rem/1.2 "Source Sans 3", system-ui, sans-serif;
+  text-decoration: none;
+  white-space: nowrap;
 }
 
 .ngi-whatsapp-help:hover {
   background: #0b5034;
+  color: #fff;
 }
 
 .ngi-whatsapp-help:focus-visible {
