@@ -555,7 +555,7 @@ const NGI_EMBEDDED_IMAGES = {
 
 const NGI_WHATSAPP_HELP_HTML = `<aside class="ngi-whatsapp-help" aria-label="Help and support">
   <p>Need help with the website or an application?</p>
-  <a href="https://wa.me/923043003600" target="_blank" rel="noopener noreferrer">Chat on WhatsApp</a>
+  <a href="https://wa.me/923043003600" target="_blank" rel="noopener noreferrer">Live Chat Support <span>WhatsApp: 03043003600</span></a>
 </aside>`;
 const NGI_WHATSAPP_HELP_CSS = `.ngi-whatsapp-help {
   position: fixed;
@@ -578,13 +578,19 @@ const NGI_WHATSAPP_HELP_CSS = `.ngi-whatsapp-help {
 
 .ngi-whatsapp-help a {
   display: inline-flex;
-  align-items: center;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
   min-height: 44px;
   padding: .4rem .7rem;
   border-radius: .45rem;
   background: #126442;
   color: #fff;
   text-decoration: none;
+}
+
+.ngi-whatsapp-help a span {
+  font-size: .8rem;
 }
 
 .ngi-whatsapp-help a:hover {
