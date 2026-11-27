@@ -1,2 +1,8 @@
 # NGI Membership backend
 This is separate from UFAQ. Create a new Google Apps Script project in the NGI-controlled Google account. Copy Code.gs, run setupMembership manually, and grant the required permissions. Confirm the new Membership Applications spreadsheet is private. Deploy as a web app, executing as the owner with access available to applicants (Anyone, if allowed). Copy the deployment /exec URL into membership/config.js. The form deliberately disables submissions until that URL is configured. Test validation and a synthetic application with the administrator before opening registration. No credentials or private spreadsheet ID belong in GitHub.
+
+## Deploying email verification
+
+Update the existing NGI Membership script so it keeps its current script properties and private spreadsheet. Run `authorizeMembershipEmail` once as the owner to grant the MailApp permission, then publish a new version of the existing web app and release the matching frontend. Check that the public site still points at that deployment's `/exec` URL. The old backend and the new frontend require a coordinated release.
+
+Use an administrator-controlled email to confirm code delivery, successful registration and duplicate recovery before opening the form to applicants. The code expires after 10 minutes. Requests have a per-email cooldown and shared limits of 15 sends per UTC hour and 75 per UTC day, subject to Google's remaining mail quota. A verified email identifies an application. The phone number is collected for contact and is not verified. Review any historical rows with suspicious or incorrect contact details.
