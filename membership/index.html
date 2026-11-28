@@ -66,11 +66,6 @@
       <label class="membership-check"><input type="checkbox" name="accuracy" required> <span>I confirm that the information I have provided is accurate. *</span></label>
     </fieldset>
     <div class="membership-hp" aria-hidden="true"><label for="website">Website</label><input id="website" name="website" tabindex="-1" autocomplete="off"></div>
-    <fieldset><legend>04. Verify your email</legend>
-      <p>Request a code and enter it within 10 minutes. Use the same browser tab to submit your application.</p>
-      <button id="membership-send-code" type="button" disabled>Send Email Code</button>
-      <div class="membership-row"><label for="membership-code">Email Verification Code *</label><input id="membership-code" name="code" autocomplete="one-time-code" maxlength="12" pattern="[A-Fa-f0-9]{12}" required></div>
-    </fieldset>
     <button id="membership-submit" type="submit" disabled>Submit Membership Application</button>
   </form>
   <dialog id="membership-success-dialog" class="membership-success-dialog" aria-labelledby="membership-success-title" aria-describedby="membership-success-description">
@@ -83,7 +78,7 @@
   </dialog>
 </section>
 <script src="config.js?v=membership-connected-1"></script>
-<script src="membership.js?v=membership-verification-1"></script>
+<script src="membership.js?v=membership-direct-1"></script>
 </main>
 <div class="site-footer">
 <div class="footer-inner">
